@@ -47,6 +47,10 @@
     gl.enableVertexAttribArray(vPosition);
     gl.enableVertexAttribArray(vColor);
 
+    var translation = gl.getUniformLocation(program, 'translation');
+    var translationVector = [-0.75, 0.5, 0.0];
+    gl.uniform3fv(translation, translationVector);
+
     // Bersihkan layar jadi hitam
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
