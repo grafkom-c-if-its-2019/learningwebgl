@@ -1,5 +1,10 @@
+precision mediump float;
+
+attribute vec2 vPosition;
+attribute vec3 vColor;
+varying vec3 fColor;
+
 void main() {
-  
-  gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
-  gl_PointSize = 10.0;
+  fColor = vColor;
+  gl_Position = vec4(vPosition, 0.0, 1.0);
 }
