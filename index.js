@@ -48,15 +48,39 @@
     gl.enableVertexAttribArray(vColor);
 
     var translation = gl.getUniformLocation(program, 'translation');
-    var translationVector = [-0.75, 0.5, 0.0];
+    var translationVector = [0.0, -0.5, 0.0];
     gl.uniform3fv(translation, translationVector);
 
-    // Bersihkan layar jadi hitam
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    var thetaLocation = gl.getUniformLocation(program, 'theta');
+    var theta = 0.0;
 
-    // Bersihkan buffernya canvas
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    var scaleXLocation = gl.getUniformLocation(program, 'scaleX');
+    var scaleYLocation = gl.getUniformLocation(program, 'scaleY');
+    var scaleX = 1.0;
+    var scaleY = 1.0;
+    var melebar = 1;
 
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    function render() {
+      // Bersihkan layar jadi hitam
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  
+      // Bersihkan buffernya canvas
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      /*
+      theta += 0.01;
+      gl.uniform1f(thetaLocation, theta);
+      */
+
+      if (scaleX >= 1) melebar = -1;
+      else if (scaleX <= -1) melebar = 1;
+      scaleX += 0.01 * melebar;
+      gl.uniform1f(scaleXLocation, scaleX);
+      gl.uniform1f(scaleYLocation, scaleY);
+  
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      requestAnimationFrame(render);
+    }
+    render();
   }
 })();
