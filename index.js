@@ -81,15 +81,23 @@
     gl.enableVertexAttribArray(vPosition);
     gl.enableVertexAttribArray(vColor);
 
-    var thetaLocation = gl.getUniformLocation(program, 'theta');
-    var theta = 0.0;
+    // Definisi transformasi pada model
+    var mmLoc = gl.getUniformLocation(program, 'modelMatrix');
+    var theta = [ 0.0, 0.0, 0.0 ];
+    var xAxis = 0, yAxis = 1, zAxis = 2;
 
     function render() {
       // Bersihkan buffernya canvas
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      theta += 0.01;
-      gl.uniform1f(thetaLocation, theta);
+      theta[xAxis] += 0.01;
+      theta[yAxis] += 0.01;
+      theta[zAxis] += 0.01;
+      var mm = glMatrix.mat4.create();
+      glMatrix.mat4.rotateZ(mm, mm, theta[zAxis]);
+      glMatrix.mat4.rotateY(mm, mm, theta[yAxis]);
+      glMatrix.mat4.rotateX(mm, mm, theta[xAxis]);
+      gl.uniformMatrix4fv(mmLoc, false, mm);
   
       gl.drawArrays(gl.TRIANGLES, 0, 36);
       requestAnimationFrame(render);
