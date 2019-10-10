@@ -85,14 +85,22 @@
     var mmLoc = gl.getUniformLocation(program, 'modelMatrix');
     var theta = [ 0.0, 0.0, 0.0 ];
     var xAxis = 0, yAxis = 1, zAxis = 2;
+    var thetaSpeed = 0.0;
+
+    function onKeyDown(event) {
+      if (event.keyCode == 189) thetaSpeed -= 0.005;      // tombol '-'
+      else if (event.keyCode == 187) thetaSpeed += 0.005; // tombol '='
+      else if (event.keyCode == 48) thetaSpeed = 0;       // tombol '0'
+    }
+    document.addEventListener('keydown', onKeyDown);
 
     function render() {
       // Bersihkan buffernya canvas
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      theta[xAxis] += 0.01;
-      theta[yAxis] += 0.01;
-      theta[zAxis] += 0.01;
+      theta[xAxis] += thetaSpeed;
+      theta[yAxis] += thetaSpeed;
+      theta[zAxis] += thetaSpeed;
       var mm = glMatrix.mat4.create();
       glMatrix.mat4.rotateZ(mm, mm, theta[zAxis]);
       glMatrix.mat4.rotateY(mm, mm, theta[yAxis]);
