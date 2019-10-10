@@ -94,6 +94,27 @@
     }
     document.addEventListener('keydown', onKeyDown);
 
+    // Definisi matriks pandangan (view matrix)
+    var vmLoc = gl.getUniformLocation(program, 'viewMatrix');
+    var vm = glMatrix.mat4.create();
+    glMatrix.mat4.lookAt(vm,
+      glMatrix.mat3.fromValues(0.0, 0.0, 0.0), // eye: posisi kamera
+      glMatrix.mat3.fromValues(0.0, 0.0, -2.0), // at: posisi kamera menghadap
+      glMatrix.mat3.fromValues(0.0, 1.0, 0.0)  // up: posisi arah atas kamera
+    );
+    gl.uniformMatrix4fv(vmLoc, false, vm);
+
+    // Definisi matriks proyeksi perspektif
+    var pmLoc = gl.getUniformLocation(program, 'perspectiveMatrix');
+    var pm = glMatrix.mat4.create();
+    glMatrix.mat4.perspective(pm,
+      glMatrix.glMatrix.toRadian(90), // fovy dalam radian
+      canvas.width / canvas.height,
+      1.0,  // near
+      10.0  // far
+    );
+    gl.uniformMatrix4fv(pmLoc, false, pm);
+
     function render() {
       // Bersihkan buffernya canvas
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -102,6 +123,7 @@
       theta[yAxis] += thetaSpeed;
       theta[zAxis] += thetaSpeed;
       var mm = glMatrix.mat4.create();
+      glMatrix.mat4.translate(mm, mm, [0.0, 0.0, -2.0]);
       glMatrix.mat4.rotateZ(mm, mm, theta[zAxis]);
       glMatrix.mat4.rotateY(mm, mm, theta[yAxis]);
       glMatrix.mat4.rotateX(mm, mm, theta[xAxis]);
