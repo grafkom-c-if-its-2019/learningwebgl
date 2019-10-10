@@ -1,6 +1,6 @@
 precision mediump float;
 
-attribute vec2 vPosition;
+attribute vec3 vPosition;
 attribute vec3 vColor;
 varying vec3 fColor;
 uniform float theta;
@@ -13,5 +13,5 @@ void main() {
     0.0, 0.0, 1.0, 0.0,
     0.0, 0.0, 0.0, 1.0
   );
-  gl_Position = rotate * vec4(vPosition, 0.0, 1.0);
+  gl_Position = rotate * vec4(vPosition, 1.0);
 }
