@@ -36,6 +36,16 @@
       [ 1.0, 0.5, 0.0 ], // orange
       []
     ];
+    var cubeNormals = [
+      [],
+      [ 0.0,  0.0,  1.0],
+      [ 1.0,  0.0,  0.0],
+      [ 0.0, -1.0,  0.0],
+      [ 0.0,  0.0, -1.0],
+      [-1.0,  0.0,  0.0],
+      [ 0.0,  1.0,  0.0],
+      []
+    ];
     function quad(a, b, c, d) {
       var indices = [a, b, c, a, c, d];
       for (var i = 0; i < indices.length; i++) {
@@ -44,6 +54,7 @@
         }
         for (var j = 0; j < 3; j++) {
           cubeVertices.push(cubeColors[a][j]);
+          cubeVertices.push(cubeNormals[a][j]);
         }
       }
     }
@@ -62,12 +73,13 @@
     // Link untuk attribute
     var vPosition = gl.getAttribLocation(program, 'vPosition');
     var vColor = gl.getAttribLocation(program, 'vColor');
+    var vNormal = gl.getAttribLocation(program, 'vNormal');
     gl.vertexAttribPointer(
       vPosition,  // variabel yang memegang posisi attribute di shader
       3,          // jumlah elemen per atribut
       gl.FLOAT,   // tipe data atribut
       false, 
-      6 * Float32Array.BYTES_PER_ELEMENT, // ukuran byte tiap vertex 
+      9 * Float32Array.BYTES_PER_ELEMENT, // ukuran byte tiap vertex 
       0                                   // offset dari posisi elemen di array
     );
     gl.vertexAttribPointer(
@@ -75,11 +87,20 @@
       3,
       gl.FLOAT,
       false,
-      6 * Float32Array.BYTES_PER_ELEMENT,
+      9 * Float32Array.BYTES_PER_ELEMENT,
       3 * Float32Array.BYTES_PER_ELEMENT
+    );
+    gl.vertexAttribPointer(
+      vNormal,
+      3,
+      gl.FLOAT,
+      false,
+      9 * Float32Array.BYTES_PER_ELEMENT,
+      6 * Float32Array.BYTES_PER_ELEMENT
     );
     gl.enableVertexAttribArray(vPosition);
     gl.enableVertexAttribArray(vColor);
+    gl.enableVertexAttribArray(vNormal);
 
     // Definisi transformasi pada model
     var mmLoc = gl.getUniformLocation(program, 'modelMatrix');
@@ -114,6 +135,15 @@
       10.0  // far
     );
     gl.uniformMatrix4fv(pmLoc, false, pm);
+
+    // Definisi cahaya
+    var lightColorLoc = gl.getUniformLocation(program, 'lightColor');
+    var lightDirectionLoc = gl.getUniformLocation(program, 'lightDirection');
+    var lightColor = [1.0, 1.0, 1.0]; // Cahaya warna putih
+    var lightDirection = glMatrix.vec3.fromValues(0.5, 3.0, 4.0);
+    var lightDirectionNormal = glMatrix.vec3.normalize(glMatrix.vec3.create(), lightDirection);
+    gl.uniform3fv(lightColorLoc, lightColor);
+    gl.uniform3fv(lightDirectionLoc, lightDirectionNormal);
 
     function render() {
       // Bersihkan buffernya canvas
