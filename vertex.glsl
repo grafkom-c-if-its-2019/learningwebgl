@@ -12,6 +12,7 @@ uniform mat4 perspectiveMatrix;
 uniform vec3 lightColor;
 uniform vec3 lightDirection;
 uniform mat3 normalMatrix;  // Membantu transformasi vektor normal
+uniform vec3 ambientColor;
 
 void main() {
   gl_Position = perspectiveMatrix * viewMatrix * modelMatrix * vec4(vPosition, 1.0);
@@ -22,7 +23,10 @@ void main() {
   float lightIntensity = max(dot(lightDirection, normal), 0.0); 
 
   // Menghitung nilai diffuse dari interaksi cahaya dan material
-  vec3 diffuse = lightColor * vColor.rgb * lightIntensity;
+  vec3 diffuse = lightColor * vColor * lightIntensity;
 
-  fColor = diffuse;
+  // Menghitung nilai ambient dari verteks
+  vec3 ambient = ambientColor * vColor;
+
+  fColor = diffuse + ambient;
 }

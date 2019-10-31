@@ -145,6 +145,8 @@
     var lightDirection = glMatrix.vec3.fromValues(0.5, 4.0, 3.0);
     gl.uniform3fv(lightColorLoc, lightColor);
     gl.uniform3fv(lightDirectionLoc, lightDirection);
+    var ambientColorLoc = gl.getUniformLocation(program, 'ambientColor');
+    gl.uniform3fv(ambientColorLoc, glMatrix.vec3.fromValues(0.5, 0.5, 0.5));
 
     var nmLoc = gl.getUniformLocation(program, 'normalMatrix');
 
