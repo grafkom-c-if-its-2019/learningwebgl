@@ -38,12 +38,12 @@
     ];
     var cubeNormals = [
       [],
-      [ 0.0,  0.0,  1.0],
-      [ 1.0,  0.0,  0.0],
-      [ 0.0, -1.0,  0.0],
-      [ 0.0,  0.0, -1.0],
-      [-1.0,  0.0,  0.0],
-      [ 0.0,  1.0,  0.0],
+      [ 0.0,  0.0,  1.0], // depan
+      [ 1.0,  0.0,  0.0], // kanan
+      [ 0.0, -1.0,  0.0], // bawah
+      [ 0.0,  0.0, -1.0], // belakang
+      [-1.0,  0.0,  0.0], // kiri
+      [ 0.0,  1.0,  0.0], // atas
       []
     ];
     function quad(a, b, c, d) {
@@ -54,6 +54,8 @@
         }
         for (var j = 0; j < 3; j++) {
           cubeVertices.push(cubeColors[a][j]);
+        }
+        for (var j = 0; j < 3; j++) {
           cubeVertices.push(cubeNormals[a][j]);
         }
       }
@@ -119,9 +121,9 @@
     var vmLoc = gl.getUniformLocation(program, 'viewMatrix');
     var vm = glMatrix.mat4.create();
     glMatrix.mat4.lookAt(vm,
-      glMatrix.mat3.fromValues(0.0, 0.0, 0.0), // eye: posisi kamera
+      glMatrix.mat3.fromValues(0.0, 0.0,  0.0), // eye: posisi kamera
       glMatrix.mat3.fromValues(0.0, 0.0, -2.0), // at: posisi kamera menghadap
-      glMatrix.mat3.fromValues(0.0, 1.0, 0.0)  // up: posisi arah atas kamera
+      glMatrix.mat3.fromValues(0.0, 1.0,  0.0)  // up: posisi arah atas kamera
     );
     gl.uniformMatrix4fv(vmLoc, false, vm);
 
@@ -140,10 +142,11 @@
     var lightColorLoc = gl.getUniformLocation(program, 'lightColor');
     var lightDirectionLoc = gl.getUniformLocation(program, 'lightDirection');
     var lightColor = [1.0, 1.0, 1.0]; // Cahaya warna putih
-    var lightDirection = glMatrix.vec3.fromValues(0.5, 3.0, 4.0);
-    var lightDirectionNormal = glMatrix.vec3.normalize(glMatrix.vec3.create(), lightDirection);
+    var lightDirection = glMatrix.vec3.fromValues(0.5, 4.0, 3.0);
     gl.uniform3fv(lightColorLoc, lightColor);
-    gl.uniform3fv(lightDirectionLoc, lightDirectionNormal);
+    gl.uniform3fv(lightDirectionLoc, lightDirection);
+
+    var nmLoc = gl.getUniformLocation(program, 'normalMatrix');
 
     function render() {
       // Bersihkan buffernya canvas
@@ -158,6 +161,11 @@
       glMatrix.mat4.rotateY(mm, mm, theta[yAxis]);
       glMatrix.mat4.rotateX(mm, mm, theta[xAxis]);
       gl.uniformMatrix4fv(mmLoc, false, mm);
+
+      // ModelMatrix kita perbantukan untuk membuat 
+      //  matriks transformasi vektor normal
+      var nm = glMatrix.mat3.normalFromMat4(glMatrix.mat3.create(), mm);
+      gl.uniformMatrix3fv(nmLoc, false, nm);
   
       gl.drawArrays(gl.TRIANGLES, 0, 36);
       requestAnimationFrame(render);

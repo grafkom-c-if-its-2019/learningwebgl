@@ -11,11 +11,12 @@ uniform mat4 perspectiveMatrix;
 
 uniform vec3 lightColor;
 uniform vec3 lightDirection;
+uniform mat3 normalMatrix;  // Membantu transformasi vektor normal
 
 void main() {
   gl_Position = perspectiveMatrix * viewMatrix * modelMatrix * vec4(vPosition, 1.0);
 
-  vec3 normal = normalize(vNormal); // Supaya jadi unit vector
+  vec3 normal = normalize(normalMatrix * vNormal); // Supaya jadi unit vector
   
   // Perkalian titik (dot product) antara vektor arah datang cahaya dengan orientasi permukaan (vektor normal)
   float lightIntensity = max(dot(lightDirection, normal), 0.0); 
