@@ -140,11 +140,11 @@
 
     // Definisi cahaya
     var lightColorLoc = gl.getUniformLocation(program, 'lightColor');
-    var lightDirectionLoc = gl.getUniformLocation(program, 'lightDirection');
+    var lightPositionLoc = gl.getUniformLocation(program, 'lightPosition');
     var lightColor = [1.0, 1.0, 1.0]; // Cahaya warna putih
-    var lightDirection = glMatrix.vec3.fromValues(0.5, 4.0, 3.0);
+    var lightPosition = glMatrix.vec3.fromValues(0.5, 4.0, 3.0);
     gl.uniform3fv(lightColorLoc, lightColor);
-    gl.uniform3fv(lightDirectionLoc, lightDirection);
+    gl.uniform3fv(lightPositionLoc, lightPosition);
     var ambientColorLoc = gl.getUniformLocation(program, 'ambientColor');
     gl.uniform3fv(ambientColorLoc, glMatrix.vec3.fromValues(0.5, 0.5, 0.5));
 

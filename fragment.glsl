@@ -1,7 +1,7 @@
 precision mediump float;
 
 uniform vec3 lightColor;
-uniform vec3 lightDirection;
+uniform vec3 lightPosition;
 uniform vec3 ambientColor;
 
 varying vec3 fColor;
@@ -16,6 +16,7 @@ void main() {
   
   // Menghitung nilai cos dari sudut antara arah cahaya dan normal
   //  (sama dengan perkalian titik dari vektor arah cahaya dan vektor normal)
+  vec3 lightDirection = normalize(lightPosition - fPosition);
   float lightIntensity = max(dot(lightDirection, normal), 0.0); 
 
   // Menghitung nilai diffuse dari interaksi cahaya dan material
