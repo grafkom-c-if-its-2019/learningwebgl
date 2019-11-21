@@ -69,16 +69,16 @@
         for (var j = 0; j < 2; j++) {
           switch (indices[i]) {
             case a:
-              cubeVertices.push(cubeTexCoords[0]);
+              cubeVertices.push(cubeTexCoords[0][j]);
               break;
             case b:
-              cubeVertices.push(cubeTexCoords[1]);
+              cubeVertices.push(cubeTexCoords[1][j]);
               break;
             case c:
-              cubeVertices.push(cubeTexCoords[2]);
+              cubeVertices.push(cubeTexCoords[2][j]);
               break;
             case d:
-              cubeVertices.push(cubeTexCoords[3]);
+              cubeVertices.push(cubeTexCoords[3][j]);
               break;
           
             default:
