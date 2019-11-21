@@ -7,8 +7,8 @@
     var canvas = document.getElementById("glcanvas");
     var gl = glUtils.checkWebGL(canvas);
 
-    var vertexShader = glUtils.getShader(gl, gl.VERTEX_SHADER, glUtils.SL.Shaders.v1.vertex);
-    var fragmentShader = glUtils.getShader(gl, gl.FRAGMENT_SHADER, glUtils.SL.Shaders.v1.fragment);
+    var vertexShader = glUtils.getShader(gl, gl.VERTEX_SHADER, glUtils.SL.Shaders.v2.vertex);
+    var fragmentShader = glUtils.getShader(gl, gl.FRAGMENT_SHADER, glUtils.SL.Shaders.v2.fragment);
     var program = glUtils.createProgram(gl, vertexShader, fragmentShader);
 
     gl.useProgram(program);
@@ -46,6 +46,14 @@
       [ 0.0,  1.0,  0.0], // atas
       []
     ];
+    var cubeTexCoords = [
+      // u, v
+      [ 0.0,  0.0],   // kiri bawah
+      [ 0.0,  1.0],   // kiri atas
+      [ 1.0,  1.0],   // kanan atas
+      [ 1.0,  0.0],   // kanan bawah
+    ];
+
     function quad(a, b, c, d) {
       var indices = [a, b, c, a, c, d];
       for (var i = 0; i < indices.length; i++) {
@@ -57,6 +65,25 @@
         }
         for (var j = 0; j < 3; j++) {
           cubeVertices.push(cubeNormals[a][j]);
+        }
+        for (var j = 0; j < 2; j++) {
+          switch (indices[i]) {
+            case a:
+              cubeVertices.push(cubeTexCoords[0]);
+              break;
+            case b:
+              cubeVertices.push(cubeTexCoords[1]);
+              break;
+            case c:
+              cubeVertices.push(cubeTexCoords[2]);
+              break;
+            case d:
+              cubeVertices.push(cubeTexCoords[3]);
+              break;
+          
+            default:
+              break;
+          }
         }
       }
     }
@@ -74,35 +101,45 @@
 
     // Link untuk attribute
     var vPosition = gl.getAttribLocation(program, 'vPosition');
-    var vColor = gl.getAttribLocation(program, 'vColor');
+    // var vColor = gl.getAttribLocation(program, 'vColor');
     var vNormal = gl.getAttribLocation(program, 'vNormal');
+    var vTexCoord = gl.getAttribLocation(program, 'vTexCoord');
     gl.vertexAttribPointer(
       vPosition,  // variabel yang memegang posisi attribute di shader
       3,          // jumlah elemen per atribut
       gl.FLOAT,   // tipe data atribut
       false, 
-      9 * Float32Array.BYTES_PER_ELEMENT, // ukuran byte tiap vertex 
+      11 * Float32Array.BYTES_PER_ELEMENT, // ukuran byte tiap vertex 
       0                                   // offset dari posisi elemen di array
     );
-    gl.vertexAttribPointer(
-      vColor,
-      3,
-      gl.FLOAT,
-      false,
-      9 * Float32Array.BYTES_PER_ELEMENT,
-      3 * Float32Array.BYTES_PER_ELEMENT
-    );
+    // gl.vertexAttribPointer(
+    //   vColor,
+    //   3,
+    //   gl.FLOAT,
+    //   false,
+    //   11 * Float32Array.BYTES_PER_ELEMENT,
+    //   3 * Float32Array.BYTES_PER_ELEMENT
+    // );
     gl.vertexAttribPointer(
       vNormal,
       3,
       gl.FLOAT,
       false,
-      9 * Float32Array.BYTES_PER_ELEMENT,
+      11 * Float32Array.BYTES_PER_ELEMENT,
       6 * Float32Array.BYTES_PER_ELEMENT
     );
+    gl.vertexAttribPointer(
+      vTexCoord,
+      2,
+      gl.FLOAT,
+      false,
+      11 * Float32Array.BYTES_PER_ELEMENT,
+      9 * Float32Array.BYTES_PER_ELEMENT
+    );
     gl.enableVertexAttribArray(vPosition);
-    gl.enableVertexAttribArray(vColor);
+    // gl.enableVertexAttribArray(vColor);
     gl.enableVertexAttribArray(vNormal);
+    gl.enableVertexAttribArray(vTexCoord);
 
     // Definisi transformasi pada model
     var mmLoc = gl.getUniformLocation(program, 'modelMatrix');
@@ -177,6 +214,29 @@
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
     gl.enable(gl.DEPTH_TEST);
+
+    // Create a texture.
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    
+    // Fill the texture with a 1x1 blue pixel.
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                  new Uint8Array([0, 0, 255, 255]));
+
+    gl.activeTexture(gl.TEXTURE0);
+    var sampler0Loc = gl.getUniformLocation(program, 'sampler0');
+    gl.uniform1i(sampler0Loc, 0);
+    
+    // Asynchronously load an image
+    var image = new Image();
+    image.src = "images/txStainglass.bmp";
+    image.addEventListener('load', function() {
+      // Now that the image has loaded make copy it to the texture.
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+      gl.generateMipmap(gl.TEXTURE_2D);
+    });
+
     render();
   }
 })();
