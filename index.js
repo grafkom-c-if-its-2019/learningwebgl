@@ -147,12 +147,50 @@
     var xAxis = 0, yAxis = 1, zAxis = 2;
     var thetaSpeed = 0.0;
 
+    // Interaksi dengan keyboard
     function onKeyDown(event) {
       if (event.keyCode == 189) thetaSpeed -= 0.005;      // tombol '-'
       else if (event.keyCode == 187) thetaSpeed += 0.005; // tombol '='
       else if (event.keyCode == 48) thetaSpeed = 0;       // tombol '0'
     }
     document.addEventListener('keydown', onKeyDown);
+
+    // Interaksi dengan mouse
+    var lastx, lasty, dragging;
+    function onMouseDown(event) { // Ketika tombol klik kiri ditekan
+      var x = event.clientX;
+      var y = event.clientY;
+      var rect = event.target.getBoundingClientRect();
+      if (
+        rect.left <= x &&
+        rect.right > x &&
+        rect.top <= y &&
+        rect.bottom > y
+      ) {
+        lastx = x;
+        lasty = y;
+        dragging = true;
+      }
+    }
+    function onMouseUp(event) {   // Ketika tombol klik kiri dilepas
+      dragging = false;
+    }
+    function onMouseMove(event) { // Ketika mouse bergerak
+      var x = event.clientX;
+      var y = event.clientY;
+      if (dragging) {
+        var factor = 10 / canvas.height;
+        var dx = factor * (x - lastx);  // Perubahan posisi mouse secara horizontal
+        var dy = factor * (y - lasty);  // Perubahan posisi mouse secara vertikal
+        theta[xAxis] += dy;
+        theta[yAxis] += dx;
+      }
+      lastx = x;
+      lasty = y;
+    }
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('mousemove', onMouseMove);
 
     // Definisi matriks pandangan (view matrix)
     var vmLoc = gl.getUniformLocation(program, 'viewMatrix');
