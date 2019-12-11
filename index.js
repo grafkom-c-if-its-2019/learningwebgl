@@ -170,8 +170,6 @@
         rect.top <= y &&
         rect.bottom > y
       ) {
-        lastx = x;
-        lasty = y;
         dragging = true;
       }
       // Untuk perhitungan di virtual arc ball 
