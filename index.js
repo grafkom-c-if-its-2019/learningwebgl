@@ -156,7 +156,7 @@
     document.addEventListener('keydown', onKeyDown);
 
     // Interaksi dengan mouse
-    var lastx, lasty, dragging;
+    var dragging;
     var rm = glMatrix.mat4.create();
     function onMouseDown(event) { // Ketika tombol klik kiri ditekan
       var x = event.clientX;
@@ -174,45 +174,60 @@
         lasty = y;
         dragging = true;
       }
+      // Untuk perhitungan di virtual arc ball 
+      startPos = projectOntoSurface(glMatrix.vec3.fromValues(x, y, 0));
+      currentPos = startPos;
     }
     function onMouseUp(event) {   // Ketika tombol klik kiri dilepas
       dragging = false;
+      if (currentPos != startPos) {
+        startQuat = computeCurrentQuat();
+      }
     }
     function onMouseMove(event) { // Ketika mouse bergerak
       if (dragging) {
         var x = event.clientX;
         var y = event.clientY;
-        // Sumbu X dan Y harus selalu dipantau dan diupdate,
-        //  sehubungan dengan transformasi yang terjadi sebelumnya.
-        // Agar sumbu X dan Y di object coordinate dapat menyesuaikan diri 
-        //  dengan sumbu X dan Y di world coordinate,
-        //  maka mereka perlu ditransformasikan sesuai dengan inversi dari 
-        //  rotasi yang dieksekusi sebelumnya
-        var invrm = glMatrix.mat4.create();
-        var yaxis4 = glMatrix.vec4.create();
-        var xaxis4 = glMatrix.vec4.create();
-        // Asumsinya geser 1 piksel = putar 1/2 derajat
-        var dx = (x - lastx) / 2;
-        var dy = (y - lasty) / 2;
-        var rotx = glMatrix.glMatrix.toRadian(dy);
-        var roty = glMatrix.glMatrix.toRadian(dx);
-        // Rotasi terhadap sumbu y global
-        glMatrix.mat4.invert(invrm, rm);
-        glMatrix.vec4.transformMat4(yaxis4, glMatrix.vec4.fromValues(0, 1, 0, 0), invrm);
-        var yaxis = glMatrix.vec3.fromValues(yaxis4[0], yaxis4[1], yaxis4[2]);
-        glMatrix.mat4.rotate(rm, rm, roty, yaxis);
-        // Rotasi terhadap sumbu x global
-        glMatrix.mat4.invert(invrm, rm);
-        glMatrix.vec4.transformMat4(xaxis4, glMatrix.vec4.fromValues(1, 0, 0, 0), invrm);
-        var xaxis = glMatrix.vec3.fromValues(xaxis4[0], xaxis4[1], xaxis4[2]);
-        glMatrix.mat4.rotate(rm, rm, rotx, xaxis);
-        lastx = x;
-        lasty = y;
+        // Perhitungan putaran quaternion
+        currentPos = projectOntoSurface(glMatrix.vec3.fromValues(x, y, 0));
+        glMatrix.mat4.fromQuat(rm, computeCurrentQuat());
       }
     }
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('mouseup', onMouseUp);
     document.addEventListener('mousemove', onMouseMove);
+
+    // QUATERNION SECTION
+    var startPos, currentPos;
+    var startQuat = glMatrix.quat.create();
+    //  Mensimulasikan interaksi mouse dengan object
+    //  melalui virtual arc ball
+    function projectOntoSurface(point) {
+      // Melakukan mapping titik pointer mouse ke virtual arc ball
+      var radius = canvas.width/3;  // radius virtual arc ball = 1/3 dari lebar kanvas
+      var center = glMatrix.vec3.fromValues(canvas.width/2, canvas.height/2, 0);  // titik tengah virtual arc ball
+      var p = glMatrix.vec3.subtract(glMatrix.vec3.create(), point, center);
+      p[1] = p[1] * (-1); // Flip sumbu y, karena koordinat piksel makin ke bawah makin besar
+      var radius2 = radius * radius;
+      var length2 = p[0] * p[0] + p[1] * p[1];
+      if (length2 <= radius2) p[2] = Math.sqrt(radius2 - length2); // Dapatkan p.z melalui pythagoras
+      else {
+        p[0] *= radius / Math.sqrt(length2);
+        p[1] *= radius / Math.sqrt(length2);
+        p[2] = 0;
+      }
+      return glMatrix.vec3.normalize(glMatrix.vec3.create(), p);
+    }
+    function computeCurrentQuat() {
+      // Secara berkala hitung quaternion rotasi setiap ada perubahan posisi titik pointer
+      var axis = glMatrix.vec3.cross(glMatrix.vec3.create(), startPos, currentPos);
+      var dot = glMatrix.vec3.dot(startPos, currentPos);
+      var angle = Math.acos(dot);
+      // console.log(startPos + " | " + currentPos + " | " + angle);
+      var rotationQuat = glMatrix.quat.setAxisAngle(glMatrix.quat.create(), axis, angle);
+      glMatrix.quat.normalize(rotationQuat, rotationQuat);
+      return glMatrix.quat.multiply(glMatrix.quat.create(), rotationQuat, startQuat);
+    }
 
     // Definisi matriks pandangan (view matrix)
     var vmLoc = gl.getUniformLocation(program, 'viewMatrix');
