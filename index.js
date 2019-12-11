@@ -143,24 +143,27 @@
 
     // Definisi transformasi pada model
     var mmLoc = gl.getUniformLocation(program, 'modelMatrix');
-    var theta = [ 0.0, 0.0, 0.0 ];
     var xAxis = 0, yAxis = 1, zAxis = 2;
     var thetaSpeed = 0.0;
 
     // Interaksi dengan keyboard
     function onKeyDown(event) {
-      if (event.keyCode == 189) thetaSpeed -= 0.005;      // tombol '-'
-      else if (event.keyCode == 187) thetaSpeed += 0.005; // tombol '='
-      else if (event.keyCode == 48) thetaSpeed = 0;       // tombol '0'
+      var thetaAcceleration = glMatrix.glMatrix.toRadian(0.5);        // 1/2 derajat
+      if (event.keyCode == 189) thetaSpeed -= thetaAcceleration;      // tombol '-'
+      else if (event.keyCode == 187) thetaSpeed += thetaAcceleration; // tombol '='
+      else if (event.keyCode == 48) thetaSpeed = 0;                   // tombol '0'
     }
     document.addEventListener('keydown', onKeyDown);
 
     // Interaksi dengan mouse
     var lastx, lasty, dragging;
+    var rm = glMatrix.mat4.create();
     function onMouseDown(event) { // Ketika tombol klik kiri ditekan
       var x = event.clientX;
       var y = event.clientY;
       var rect = event.target.getBoundingClientRect();
+      // Saat mouse diklik di area aktif browser,
+      //  maka flag dragging akan diaktifkan
       if (
         rect.left <= x &&
         rect.right > x &&
@@ -176,17 +179,36 @@
       dragging = false;
     }
     function onMouseMove(event) { // Ketika mouse bergerak
-      var x = event.clientX;
-      var y = event.clientY;
       if (dragging) {
-        var factor = 10 / canvas.height;
-        var dx = factor * (x - lastx);  // Perubahan posisi mouse secara horizontal
-        var dy = factor * (y - lasty);  // Perubahan posisi mouse secara vertikal
-        theta[xAxis] += dy;
-        theta[yAxis] += dx;
+        var x = event.clientX;
+        var y = event.clientY;
+        // Sumbu X dan Y harus selalu dipantau dan diupdate,
+        //  sehubungan dengan transformasi yang terjadi sebelumnya.
+        // Agar sumbu X dan Y di object coordinate dapat menyesuaikan diri 
+        //  dengan sumbu X dan Y di world coordinate,
+        //  maka mereka perlu ditransformasikan sesuai dengan inversi dari 
+        //  rotasi yang dieksekusi sebelumnya
+        var invrm = glMatrix.mat4.create();
+        var yaxis4 = glMatrix.vec4.create();
+        var xaxis4 = glMatrix.vec4.create();
+        // Asumsinya geser 1 piksel = putar 1/2 derajat
+        var dx = (x - lastx) / 2;
+        var dy = (y - lasty) / 2;
+        var rotx = glMatrix.glMatrix.toRadian(dy);
+        var roty = glMatrix.glMatrix.toRadian(dx);
+        // Rotasi terhadap sumbu y global
+        glMatrix.mat4.invert(invrm, rm);
+        glMatrix.vec4.transformMat4(yaxis4, glMatrix.vec4.fromValues(0, 1, 0, 0), invrm);
+        var yaxis = glMatrix.vec3.fromValues(yaxis4[0], yaxis4[1], yaxis4[2]);
+        glMatrix.mat4.rotate(rm, rm, roty, yaxis);
+        // Rotasi terhadap sumbu x global
+        glMatrix.mat4.invert(invrm, rm);
+        glMatrix.vec4.transformMat4(xaxis4, glMatrix.vec4.fromValues(1, 0, 0, 0), invrm);
+        var xaxis = glMatrix.vec3.fromValues(xaxis4[0], xaxis4[1], xaxis4[2]);
+        glMatrix.mat4.rotate(rm, rm, rotx, xaxis);
+        lastx = x;
+        lasty = y;
       }
-      lastx = x;
-      lasty = y;
     }
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('mouseup', onMouseUp);
@@ -229,14 +251,17 @@
       // Bersihkan buffernya canvas
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      theta[xAxis] += thetaSpeed;
-      theta[yAxis] += thetaSpeed;
-      theta[zAxis] += thetaSpeed;
+      // Inisiasi matriks model
       var mm = glMatrix.mat4.create();
       glMatrix.mat4.translate(mm, mm, [0.0, 0.0, -2.0]);
-      glMatrix.mat4.rotateZ(mm, mm, theta[zAxis]);
-      glMatrix.mat4.rotateY(mm, mm, theta[yAxis]);
-      glMatrix.mat4.rotateX(mm, mm, theta[xAxis]);
+
+      if (!dragging) {
+        // Lakukan perputaran terhadap sumbu x, y, z object
+        glMatrix.mat4.rotate(rm, rm, thetaSpeed, glMatrix.vec3.fromValues(0, 0, 1));
+        glMatrix.mat4.rotate(rm, rm, thetaSpeed, glMatrix.vec3.fromValues(0, 1, 0));
+        glMatrix.mat4.rotate(rm, rm, thetaSpeed, glMatrix.vec3.fromValues(1, 0, 0));
+      }
+      glMatrix.mat4.multiply(mm, mm, rm);
       gl.uniformMatrix4fv(mmLoc, false, mm);
 
       // ModelMatrix kita perbantukan untuk membuat 
